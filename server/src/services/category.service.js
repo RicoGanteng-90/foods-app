@@ -8,9 +8,7 @@ export const getAllCategoriesService = async () => {
   return { categories };
 };
 
-export const createCategoryService = async (body) => {
-  const { name, description } = body;
-
+export const createCategoryService = async (name, description) => {
   if (!name) {
     throw new AppError('Category name required', {
       type: 'warn',
@@ -34,10 +32,7 @@ export const createCategoryService = async (body) => {
   return { category };
 };
 
-export const updateCategoryService = async (params, body) => {
-  const { id } = params;
-  const { name, description } = body;
-
+export const updateCategoryService = async (id, name, description) => {
   if (!name) {
     throw new AppError('Category name required', {
       type: 'warn',
@@ -61,9 +56,7 @@ export const updateCategoryService = async (params, body) => {
   return { category };
 };
 
-export const deleteCategoryService = async (params) => {
-  const { id } = params;
-
+export const deleteCategoryService = async (id) => {
   const isUsed = await foodRepository.exists({
     category: id,
   });

@@ -1,20 +1,17 @@
-import User from '../models/user.model.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  verifyToken,
-} from '../utils/jwt.js';
 import {
   getMeService,
   loginService,
   logoutService,
   refreshService,
   registerService,
+  silentRefreshService,
 } from '../services/auth.service.js';
 
 export const getMe = asyncHandler(async (req, res) => {
-  const { user } = await getMeService(req.user.id);
+  const { id } = req.user;
+
+  const { user } = await getMeService(id);
 
   res.status(200).json({
     success: true,
@@ -24,7 +21,9 @@ export const getMe = asyncHandler(async (req, res) => {
 });
 
 export const registerUser = asyncHandler(async (req, res) => {
-  const { user } = await registerService(req.body);
+  const { email, password } = req.body;
+
+  const { user } = await registerService(email, password);
 
   res.status(201).json({
     success: true,
@@ -34,13 +33,16 @@ export const registerUser = asyncHandler(async (req, res) => {
 });
 
 export const loginUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
   const clientInfo = {
     userAgent: req.headers['user-agent'],
     ip: req.ip,
   };
 
   const { accessToken, refreshToken, user } = await loginService(
-    req.body,
+    email,
+    password,
     clientInfo
   );
 
@@ -60,7 +62,11 @@ export const loginUser = asyncHandler(async (req, res) => {
 });
 
 export const logoutController = asyncHandler(async (req, res) => {
-  await logoutService(req.cookies, req.user.id);
+  const { refreshToken } = req.cookies;
+
+  const { id } = req.user;
+
+  await logoutService(refreshToken, id);
 
   res.clearCookie('refreshToken', {
     httpOnly: true,
@@ -75,13 +81,15 @@ export const logoutController = asyncHandler(async (req, res) => {
 });
 
 export const refresh = asyncHandler(async (req, res) => {
+  const { refreshToken } = req.cookies;
+
   const clientInfo = {
     userAgent: req.headers['user-agent'],
     ip: req.ip,
   };
 
   const { newAccessToken, newRefreshToken } = await refreshService(
-    req.cookies,
+    refreshToken,
     clientInfo
   );
 
@@ -89,6 +97,7 @@ export const refresh = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
+    path: '/api/auth',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -102,46 +111,12 @@ export const refresh = asyncHandler(async (req, res) => {
 export const verifyRefresh = asyncHandler(async (req, res) => {
   const { refreshToken } = req.cookies;
 
-  if (!refreshToken) {
-    return res
-      .status(401)
-      .json({ success: false, message: 'No refresh token' });
-  }
-
-  const decoded = verifyToken(refreshToken, true);
-
-  const user = await User.findById(decoded.id);
-
-  if (!user) {
-    return res.status(400).json({ success: false, message: 'User not found' });
-  }
-
-  const matchedToken = user.refreshTokens.find(
-    (rt) => rt.token === refreshToken
-  );
-
-  if (!matchedToken) {
-    await User.updateOne(
-      { _id: user._id },
-      { $pull: { refreshTokens: { token: refreshToken } } }
-    );
-
-    return res
-      .status(401)
-      .json({ success: false, message: 'Invalid refresh token' });
-  }
-
-  const accessToken = generateAccessToken(user, matchedToken.tokenFamily);
+  const { newAccessToken, user } = await silentRefreshService(refreshToken);
 
   res.status(200).json({
     success: true,
     message: 'Refresh token is valid',
-    result: accessToken,
-    user: {
-      id: user._id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-    },
+    newAccessToken,
+    user,
   });
 });

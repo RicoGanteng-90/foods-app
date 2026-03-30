@@ -19,9 +19,7 @@ export const getMeService = async (userId) => {
   return { user };
 };
 
-export const registerService = async (body) => {
-  const { email, password } = body;
-
+export const registerService = async (email, password) => {
   if (!email || !password) {
     throw new AppError('Email and password are required', {
       type: 'warn',
@@ -48,9 +46,7 @@ export const registerService = async (body) => {
   return { user };
 };
 
-export const loginService = async (body, clientInfo) => {
-  const { email, password } = body;
-
+export const loginService = async (email, password, clientInfo) => {
   if (!email || !password) {
     throw new AppError('Email and password are required', {
       type: 'warn',
@@ -93,9 +89,7 @@ export const loginService = async (body, clientInfo) => {
   };
 };
 
-export const logoutService = async (cookies, userId) => {
-  const { refreshToken } = cookies;
-
+export const logoutService = async (refreshToken, userId) => {
   if (refreshToken && userId) {
     await authRepository.deleteRefreshToken(userId, refreshToken);
   }
@@ -103,29 +97,32 @@ export const logoutService = async (cookies, userId) => {
   return;
 };
 
-export const refreshService = async (cookies, clientInfo) => {
-  const { refreshToken } = cookies;
-
+export const refreshService = async (refreshToken, clientInfo) => {
   if (!refreshToken) {
     throw new AppError('No refresh token provided', { code: 'UNAUTHORIZED' });
   }
 
   const decoded = verifyToken(refreshToken, true);
 
-  const user = await authRepository.findUserById(decoded.id);
+  const newAccessToken = generateAccessToken(decoded);
+  const newRefreshToken = generateRefreshToken(decoded, decoded.tokenFamily);
 
-  if (!user || !user.refreshTokens || user.refreshTokens.length === 0) {
-    throw new AppError('User not found', {
-      code: 'NOT_FOUND',
-    });
-  }
+  const newTokenEntry = {
+    token: newRefreshToken,
+    tokenFamily: decoded.tokenFamily,
+    device: clientInfo.userAgent,
+    ip: clientInfo.ip,
+    createdAt: new Date(),
+  };
 
-  const matchedToken = user.refreshTokens.find(
-    (rt) => rt.token === refreshToken
+  const updated = await authRepository.rotateRefreshToken(
+    decoded._id,
+    refreshToken,
+    newTokenEntry
   );
 
-  if (!matchedToken) {
-    await authRepository.deleteByTokenFamily(user._id, decoded.tokenFamily);
+  if (!updated) {
+    await authRepository.deleteByTokenFamily(decoded._id, decoded.tokenFamily);
 
     throw new AppError('Token reuse detected', {
       code: 'INVALID_TOKEN',
@@ -134,22 +131,28 @@ export const refreshService = async (cookies, clientInfo) => {
     });
   }
 
-  const newAccessToken = generateAccessToken(user);
-  const newRefreshToken = generateRefreshToken(user, matchedToken.tokenFamily);
+  return { newAccessToken, newRefreshToken };
+};
 
-  const updatedTokenArray = user.refreshTokens.filter(
-    (rt) => rt.token !== refreshToken
+export const silentRefreshService = async (refreshToken) => {
+  if (!refreshToken) {
+    throw new AppError('No refresh token provided', { code: 'UNAUTHORIZED' });
+  }
+
+  const decoded = verifyToken(refreshToken, true);
+
+  const user = await authRepository.findByRefreshToken(
+    decoded.id,
+    refreshToken
   );
 
-  updatedTokenArray.push({
-    token: newRefreshToken,
-    tokenFamily: matchedToken.tokenFamily,
-    device: clientInfo.userAgent,
-    ip: clientInfo.ip,
-    createdAt: new Date(),
-  });
+  if (!user) {
+    await authRepository.deleteByTokenFamily(decoded.id, decoded.tokenFamily);
 
-  await authRepository.updateRefreshTokenArray(user._id, updatedTokenArray);
+    throw new AppError('Invalid refresh token', { code: 'UNAUTHORIZED' });
+  }
 
-  return { newAccessToken, newRefreshToken };
+  const newAccessToken = generateAccessToken(decoded);
+
+  return { newAccessToken, user };
 };

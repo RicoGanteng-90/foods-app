@@ -25,8 +25,8 @@ export const findFoodByQuery = async (query) => {
   return await Food.findOne(query).populate('category', 'name');
 };
 
-export const findFoodById = async (id) => {
-  return await Food.findById(id).populate('category', 'name');
+export const findFoodById = async (foodId) => {
+  return await Food.findById(foodId).populate('category', 'name');
 };
 
 export const updateFoodById = async (id, updatedData) => {

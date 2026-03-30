@@ -6,13 +6,20 @@ import {
   deleteFromCloudinary,
 } from '../utils/cloudinary.js';
 
+const escapeRegex = (string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
 export const getAllFoodsService = async (query) => {
-  const { search, category, page = 1, limit = 10 } = query;
+  const page = Math.max(1, parseInt(query.page) || 1);
+  const limit = Math.max(1, parseInt(query.limit) || 10);
+  const { search, category } = query;
 
   const filter = {};
 
   if (search) {
-    filter.name = { $regex: search, $options: 'i' };
+    const safeSearch = escapeRegex(search);
+    filter.name = { $regex: safeSearch, $options: 'i' };
   }
 
   if (category) {
@@ -22,21 +29,19 @@ export const getAllFoodsService = async (query) => {
   const skip = (page - 1) * limit;
 
   const [foods, total] = await Promise.all([
-    foodRepository.findFoods(filter, skip, Number(limit)),
+    foodRepository.findFoods(filter, skip, Number(limit), { createdAt: -1 }),
     foodRepository.countFoods(filter),
   ]);
 
   return {
     foods,
     total,
-    page: Number(page),
+    page,
     totalPages: Math.ceil(total / limit),
   };
 };
 
-export const getFoodByIdService = async (params) => {
-  const { id } = params;
-
+export const getFoodByIdService = async (id) => {
   const food = await foodRepository.findFoodById(id);
 
   if (!food)
@@ -52,9 +57,10 @@ export const getFoodByIdService = async (params) => {
   return { food };
 };
 
-export const createFoodService = async (body, file) => {
-  const { name, description, price, category, stock } = body;
-
+export const createFoodService = async (
+  { name, description, price, category, stock },
+  file
+) => {
   if (
     !name ||
     name.trim() === '' ||
@@ -152,10 +158,11 @@ export const createFoodService = async (body, file) => {
   }
 };
 
-export const updateFoodService = async (params, body, file) => {
-  const { id } = params;
-  const { name, description, price, category, stock } = body;
-
+export const updateFoodService = async (
+  id,
+  { name, description, price, category, stock },
+  file
+) => {
   const food = await foodRepository.findFoodById(id);
   if (!food) {
     throw new AppError('Food not found', {
@@ -170,7 +177,7 @@ export const updateFoodService = async (params, body, file) => {
   }
 
   if (category) {
-    const categoryExist = await categoryRepository.findCategoryById(id);
+    const categoryExist = await categoryRepository.findCategoryById(category);
 
     if (!categoryExist) {
       throw new AppError('Category not found', {
@@ -204,25 +211,25 @@ export const updateFoodService = async (params, body, file) => {
   }
 
   if (price !== undefined) {
-    if (typeof price === 'number' && price >= 0) {
-      food.price = price;
-    } else {
+    const numPrice = Number(price);
+    if (isNaN(numPrice) || numPrice < 0) {
       throw new AppError('Invalid price', {
         type: 'warn',
         code: 'INVALID_INPUT',
       });
     }
+    food.price = numPrice;
   }
 
   if (stock !== undefined) {
-    if (typeof stock === 'number' && stock >= 0) {
-      food.stock = stock;
-    } else {
+    const numStock = Number(stock);
+    if (isNaN(stock) || numStock < 0) {
       throw new AppError('Invalid stock', {
         type: 'warn',
         code: 'INVALID_INPUT',
       });
     }
+    food.stock = stock;
   }
 
   const updatedFood = await foodRepository.saveFoodDocument(food);
@@ -242,9 +249,7 @@ export const updateFoodService = async (params, body, file) => {
   return { updatedFood };
 };
 
-export const deleteFoodService = async (params) => {
-  const { id } = params;
-
+export const deleteFoodService = async (id) => {
   const food = await foodRepository.findFoodById(id);
 
   if (!food) {

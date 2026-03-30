@@ -1,7 +1,7 @@
 import User from '../models/user.model';
 
-export const findMe = async (id) => {
-  return await User.findById(id).select('-password -refreshTokens').lean();
+export const findMe = async (userId) => {
+  return await User.findById(userId).select('-password -refreshTokens').lean();
 };
 
 export const findUserById = async (userId) => {
@@ -10,6 +10,13 @@ export const findUserById = async (userId) => {
 
 export const findCredentialByQuery = async (query) => {
   return await User.findOne(query).select('+password');
+};
+
+export const findByRefreshToken = async (userId, refreshToken) => {
+  return await User.findOne({
+    _id: userId,
+    'refreshTokens.token': refreshToken,
+  });
 };
 
 export const createCredential = async (data) => {
@@ -30,17 +37,18 @@ export const addRefreshToken = async (userId, tokenData) => {
   );
 };
 
-export const updateRefreshTokenArray = async (userId, tokenArray) => {
-  return await User.updateOne(
-    { _id: userId },
-    { $set: { refreshTokens: tokenArray } }
+export const rotateRefreshToken = async (userId, oldToken, newTokenEntry) => {
+  return await User.findOneAndUpdate(
+    { _id: userId, 'refreshTokens.token': oldToken },
+    { $pull: { refreshTokens: { token: oldToken } } },
+    { $push: { refreshTokens: newTokenEntry } }
   );
 };
 
 export const deleteByTokenFamily = async (userId, tokenFamily) => {
   return await User.updateOne(
     { _id: userId },
-    { $pull: { refreshTokens: { tokenFamily: tokenFamily } } }
+    { $pull: { refreshTokens: { tokenFamily } } }
   );
 };
 
