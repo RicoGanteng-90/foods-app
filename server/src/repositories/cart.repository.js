@@ -17,3 +17,8 @@ export const findCartByUserId = async (userId, populate = false) => {
 export const saveCart = async (cart) => {
   return await cart.save();
 };
+
+export const clearCart = async (cart, session) => {
+  cart.items = [];
+  return await cart.save({ session });
+};

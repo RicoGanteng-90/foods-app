@@ -4,6 +4,10 @@ export const findUser = async () => {
   return await User.find().select('-password -refreshTokens');
 };
 
+export const countUsers = async () => {
+  return await User.countDocuments();
+};
+
 export const findUserById = async (userId) => {
   return await User.findById(userId).select('-password -refreshTokens');
 };

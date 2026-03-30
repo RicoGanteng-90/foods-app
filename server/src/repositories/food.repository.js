@@ -43,3 +43,19 @@ export const updateFoodById = async (id, updatedData) => {
 export const deleteFoodById = async (id) => {
   return await Food.findByIdAndDelete(id);
 };
+
+export const decrementStock = async (foodId, quantity, session) => {
+  return await Food.findOneAndUpdate(
+    { _id: foodId, stock: { $gte: quantity } },
+    { $inc: { stock: -quantity } },
+    { session }
+  );
+};
+
+export const incrementStock = async (foodId, quantity, session) => {
+  return await Food.findOneAndUpdate(
+    { _id: foodId },
+    { $inc: { stock: quantity } },
+    { session }
+  );
+};
