@@ -4,6 +4,7 @@ import {
   getUser,
   userDeleteController,
   userUpdateController,
+  userDeleteByAdminController,
 } from '../controllers/user.controller.js';
 import { authenticate, authorize } from '../middleware/authenticate.js';
 
@@ -11,10 +12,12 @@ const router = Router();
 
 router.get('/', getAllUsers);
 
-router.get('/user/:id', authenticate, getUser);
+router.get('/:id', authenticate, getUser);
 
-router.put('/update-user/:id', authenticate, userUpdateController);
+router.put('/:id', authenticate, userUpdateController);
 
-router.delete('/delete-user/:id', authenticate, userDeleteController);
+router.delete('/me', authenticate, userDeleteController);
+
+router.delete('/:id', authenticate, userDeleteByAdminController);
 
 export default router;

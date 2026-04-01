@@ -1,4 +1,4 @@
-import Cart from '../models/cart.model';
+import Cart from '../models/cart.model.js';
 
 export const findCartByFoodId = async (userId) => {
   return await Cart.findOne({ user: userId });

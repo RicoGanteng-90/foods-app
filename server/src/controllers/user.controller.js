@@ -7,12 +7,12 @@ import {
 } from '../services/user.service.js';
 
 export const getAllUsers = asyncHandler(async (req, res) => {
-  const { user } = await getAllUsersService();
+  const { users } = await getAllUsersService();
 
   res.status(200).json({
     success: true,
     message: 'Users found',
-    user,
+    users,
   });
 });
 
@@ -50,7 +50,17 @@ export const userDeleteController = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'User deleted successfully',
-    id,
+    message: `User with ID ${id} has been wiped from the system`,
+  });
+});
+
+export const userDeleteByAdminController = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  await userDeleteService(id);
+
+  res.status(200).json({
+    success: true,
+    message: `User with ID ${id} has been wiped from the system`,
   });
 });

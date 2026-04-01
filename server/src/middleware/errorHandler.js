@@ -14,15 +14,17 @@ export default (err, req, res, next) => {
   });
 
   const statusMap = {
+    not_found: 404,
+    unauthorized: 401,
+    forbidden: 403,
+    conflict: 409,
+    validation: 422,
     error: 500,
-    warn: 400,
-    info: 200,
-    success: 200,
   };
 
   res.status(statusMap[err.type] ?? 500).json({
     success: false,
-    type: err.type,
+    message: err.message,
     code: err.code,
     caution: err.caution,
     ts: err.ts,

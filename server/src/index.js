@@ -1,7 +1,7 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import 'dotenv/config';
 
 import connectDB from './config/db.js';
 import foodRoute from './routes/food.route.js';
@@ -20,7 +20,7 @@ const PORT = process.env.PORT;
 
 app.use(
   cors({
-    origin: process.env.PUBLIC_API_URL,
+    origin: process.env.NEXT_PUBLIC_API_URL,
     credentials: true,
   })
 );

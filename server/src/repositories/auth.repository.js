@@ -1,4 +1,4 @@
-import User from '../models/user.model';
+import User from '../models/user.model.js';
 
 export const findMe = async (userId) => {
   return await User.findById(userId).select('-password -refreshTokens').lean();

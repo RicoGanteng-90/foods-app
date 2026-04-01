@@ -1,4 +1,4 @@
-import Order from '../models/order.model';
+import Order from '../models/order.model.js';
 
 export const countOrders = async (filter = {}) => {
   return await Order.countDocuments(filter);

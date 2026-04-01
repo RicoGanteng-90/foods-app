@@ -1,9 +1,9 @@
 import * as userRepository from '../repositories/user.repository.js';
 
 export const getAllUsersService = async () => {
-  const user = await userRepository.findUser();
+  const users = await userRepository.findUser();
 
-  return { user };
+  return { users };
 };
 
 export const getUserService = async (id) => {
@@ -60,6 +60,19 @@ export const updateUserService = async (userId, { name, address }) => {
 };
 
 export const userDeleteService = async (id) => {
+  const user = await userRepository.deleteUserById(id);
+
+  if (!user) {
+    throw new AppError('User not found', {
+      type: 'warn',
+      code: 'NOT_FOUND',
+    });
+  }
+
+  return { id };
+};
+
+export const userDeleteByAdminService = async (id) => {
   const user = await userRepository.deleteUserById(id);
 
   if (!user) {

@@ -61,6 +61,8 @@ export const createFoodService = async (
   { name, description, price, category, stock },
   file
 ) => {
+  const parsedPrice = Number(price);
+  const parsedStock = Number(stock);
   if (
     !name ||
     name.trim() === '' ||
@@ -79,13 +81,10 @@ export const createFoodService = async (
     });
   }
 
-  if (
-    typeof price !== 'number' ||
-    price < 0 ||
-    typeof stock !== 'number' ||
-    stock < 0
-  ) {
-    throw new AppError('Type and ammount error', {
+  const isInvalidNumber = (val) => isNaN(val) || val < 0;
+
+  if (isInvalidNumber(parsedPrice) || isInvalidNumber(parsedStock)) {
+    throw new AppError('Type and amount error', {
       type: 'warn',
       code: 'VALIDATION_ERROR',
       caution: 'Price and stock must be valid positive numbers',
@@ -138,9 +137,9 @@ export const createFoodService = async (
     const result = await foodRepository.createFood({
       name,
       description,
-      price,
+      price: parsedPrice,
       category,
-      stock,
+      stock: parsedStock,
       imageUrl,
       imagePublicId,
     });
@@ -272,9 +271,9 @@ export const deleteFoodService = async (id) => {
     }
   }
 
-  await food.deleteOne();
+  const result = await food.deleteOne();
 
-  if (!result) {
+  if (result.deletedCount === 0) {
     throw new AppError('Failed to delete data from database', {
       type: 'error',
       code: 'DATABASE_DELETE_FAILED',

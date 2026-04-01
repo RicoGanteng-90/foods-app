@@ -16,7 +16,7 @@ router.get('/', getAllFoodController);
 router.get('/:id', authenticate, authorize('admin'), getFoodById);
 
 router.post(
-  '/add-food',
+  '/',
   authenticate,
   authorize('admin'),
   upload.single('image'),

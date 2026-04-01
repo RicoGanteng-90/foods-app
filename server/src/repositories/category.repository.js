@@ -1,15 +1,15 @@
-import Category from '../models/category.model';
+import Category from '../models/category.model.js';
 
 export const findCategories = async () => {
   return await Category.findOne();
 };
 
 export const findCategoryByQuery = async (query) => {
-  await Category.findOne(query);
+  return await Category.findOne(query);
 };
 
 export const findCategoryById = async (id) => {
-  await Category.findById(id);
+  return await Category.findById(id);
 };
 
 export const createCategory = async (data) => {
