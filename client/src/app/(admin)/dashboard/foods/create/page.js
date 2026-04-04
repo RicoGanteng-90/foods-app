@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-import Image from 'next/image';
 
 export default function CreateFood() {
   const [name, setName] = useState('');
@@ -23,7 +22,7 @@ export default function CreateFood() {
     const fetchCategories = async () => {
       try {
         const res = await apiFetch(
-          '/api/categories',
+          '/categories',
           { method: 'GET' },
           accessToken,
           setAccessToken
@@ -70,8 +69,6 @@ export default function CreateFood() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (preview) URL.revokeObjectURL(preview);
-
       const url = URL.createObjectURL(file);
       setPreview(url);
       setImage(file);
@@ -96,6 +93,19 @@ export default function CreateFood() {
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
+
+        <select
+          className="border p-2"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
+          <option value="">Select Category</option>
+          {categories.map((cat) => (
+            <option key={cat._id} value={cat._id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
 
         <input
           type="number"
@@ -123,16 +133,17 @@ export default function CreateFood() {
         <input type="file" className="border p-2" onChange={handleFileChange} />
 
         {preview && (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={preview}
             alt="preview"
-            width={100}
-            height={100}
-            unoptimized
+            style={{ height: 'auto', width: 'auto' }}
           />
         )}
 
-        <button className="bg-black text-white p-2">Create Food</button>
+        <button className="bg-black text-white p-2 cursor-pointer">
+          Create Food
+        </button>
       </form>
     </div>
   );

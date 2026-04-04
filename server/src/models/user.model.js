@@ -36,6 +36,7 @@ const userSchema = new mongoose.Schema(
         device: String,
         ip: String,
         createdAt: Date,
+        expiresAt: Date,
       },
     ],
   },

@@ -1,7 +1,7 @@
 import Category from '../models/category.model.js';
 
 export const findCategories = async () => {
-  return await Category.findOne();
+  return await Category.find();
 };
 
 export const findCategoryByQuery = async (query) => {

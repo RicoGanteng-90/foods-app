@@ -1,8 +1,9 @@
 export async function apiFetch(url, options = {}, accessToken, setAccessToken) {
+  const isFormData = options.body instanceof FormData;
   let res = await fetch(`http://localhost:5000/api${url}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...(!isFormData && { 'Content-Type': 'application/json' }),
       ...(options.headers || {}),
       Authorization: accessToken ? `Bearer ${accessToken}` : '',
     },
@@ -32,6 +33,9 @@ export async function apiFetch(url, options = {}, accessToken, setAccessToken) {
     } else {
       window.location.href = '/login';
     }
+  } else if (res.status === 403) {
+    setAccessToken(null);
+    window.location.href = '/login';
   }
 
   return res;

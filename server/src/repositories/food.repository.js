@@ -1,12 +1,14 @@
 import Food from '../models/food.model.js';
+import { queryBuilder } from '../utils/queryBuilder.js';
 
-export const findFoods = async (filter, skip, limit) => {
-  return await Food.find(filter)
-    .populate('category', 'name')
-    .skip(skip)
-    .limit(limit)
-    .sort({ createdAt: -1 })
-    .lean();
+export const findFoods = (query) => {
+  return queryBuilder(Food, query, {
+    searchFields: ['name'],
+    allowedFilters: ['category'],
+    allowedSorts: ['name', 'price', 'createdAt'],
+    populate: [{ path: 'category', select: 'name' }],
+    defaultSort: { createdAt: -1 },
+  });
 };
 
 export const countFoods = async (filter) => {

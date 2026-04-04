@@ -38,10 +38,10 @@ export const addRefreshToken = async (userId, tokenData) => {
 };
 
 export const rotateRefreshToken = async (userId, oldToken, newTokenEntry) => {
-  return await User.findOneAndUpdate(
+  await User.findOneAndUpdate(
     { _id: userId, 'refreshTokens.token': oldToken },
-    { $pull: { refreshTokens: { token: oldToken } } },
-    { $push: { refreshTokens: newTokenEntry } }
+    { $set: { 'refreshTokens.$': newTokenEntry } },
+    { returnDocument: 'after', runValidators: true }
   );
 };
 
@@ -56,5 +56,12 @@ export const deleteRefreshToken = async (userId, refreshToken) => {
   return await User.updateOne(
     { _id: userId },
     { $pull: { refreshTokens: { token: refreshToken } } }
+  );
+};
+
+export const deleteExpiredToken = async (userId) => {
+  return await User.updateOne(
+    { _id: userId },
+    { $pull: { refreshTokens: { expiresAt: { $lt: new Date() } } } }
   );
 };

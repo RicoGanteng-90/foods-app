@@ -39,7 +39,7 @@ export default function Login() {
         <input
           type="email"
           placeholder="Email"
-          className="border p-2"
+          className="border p-2 transition-all focus:ring-2 focus:ring-black outline-none"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -51,7 +51,7 @@ export default function Login() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button className="bg-white text-black font-bold p-2 rounded-4xl cursor-crosshair">
+        <button className="bg-black text-white font-bold p-2 rounded-4xl cursor-pointer transition-transform active:scale-90">
           Login
         </button>
       </form>

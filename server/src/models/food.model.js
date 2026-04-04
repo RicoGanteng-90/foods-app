@@ -18,7 +18,6 @@ const FoodSchema = mongoose.Schema(
     name: {
       type: String,
       required: [true, 'Food name is required'],
-      unique: true,
       trim: true,
     },
     description: {

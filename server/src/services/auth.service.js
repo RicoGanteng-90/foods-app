@@ -65,6 +65,8 @@ export const loginService = async (email, password, clientInfo) => {
     });
   }
 
+  await authRepository.deleteExpiredToken(user._id);
+
   const tokenFamily = crypto.randomUUID();
   const accessToken = generateAccessToken(user);
   const refreshToken = generateRefreshToken(user, tokenFamily);
@@ -113,6 +115,7 @@ export const refreshService = async (refreshToken, clientInfo) => {
     device: clientInfo.userAgent,
     ip: clientInfo.ip,
     createdAt: new Date(),
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   };
 
   const updated = await authRepository.rotateRefreshToken(

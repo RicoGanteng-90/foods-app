@@ -11,34 +11,7 @@ const escapeRegex = (string) => {
 };
 
 export const getAllFoodsService = async (query) => {
-  const page = Math.max(1, parseInt(query.page) || 1);
-  const limit = Math.max(1, parseInt(query.limit) || 10);
-  const { search, category } = query;
-
-  const filter = {};
-
-  if (search) {
-    const safeSearch = escapeRegex(search);
-    filter.name = { $regex: safeSearch, $options: 'i' };
-  }
-
-  if (category) {
-    filter.category = category;
-  }
-
-  const skip = (page - 1) * limit;
-
-  const [foods, total] = await Promise.all([
-    foodRepository.findFoods(filter, skip, Number(limit), { createdAt: -1 }),
-    foodRepository.countFoods(filter),
-  ]);
-
-  return {
-    foods,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-  };
+  return await foodRepository.findFoods(query);
 };
 
 export const getFoodByIdService = async (id) => {

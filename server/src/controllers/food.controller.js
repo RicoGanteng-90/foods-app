@@ -8,14 +8,13 @@ import {
 } from '../services/food.service.js';
 
 export const getAllFoodController = asyncHandler(async (req, res) => {
-  const { search, category, page, limit } = req.query;
-
-  const result = await getAllFoodsService({ search, category, page, limit });
+  const result = await getAllFoodsService(req.query);
 
   res.status(200).json({
     success: true,
     message: 'Foods fetched successfully',
-    ...result,
+    result: result.data,
+    pagination: result.pagination,
   });
 });
 
