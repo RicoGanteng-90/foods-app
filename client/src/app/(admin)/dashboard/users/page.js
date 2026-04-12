@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { apiFetch } from '@/lib/api';
+import { apiFetch } from '@/lib/axios';
 
 export default function Users() {
   const [users, setUsers] = useState([]);

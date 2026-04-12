@@ -157,5 +157,12 @@ export const silentRefreshService = async (refreshToken) => {
 
   const newAccessToken = generateAccessToken(decoded);
 
-  return { newAccessToken, user };
+  const safeUser = {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
+
+  return { newAccessToken, user: safeUser };
 };

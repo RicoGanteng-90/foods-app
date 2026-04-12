@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { apiFetch } from '@/lib/api';
+import { apiFetch } from '@/lib/axios';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function Foods() {
   const { accessToken, setAccessToken } = useAuth();
@@ -105,15 +106,18 @@ export default function Foods() {
             <th>Price</th>
             <th>Category</th>
             <th>Image</th>
+            <th>Stock</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
           {foods.map((food) => (
             <tr key={food._id}>
-              <td className="border p-2">{food.name}</td>
-              <td className="border p-2">{food.price}</td>
-              <td className="border p-2">{food.category?.name || '-'}</td>
+              <td className="border p-2 text-center">{food.name}</td>
+              <td className="border p-2 text-center">{food.price}</td>
+              <td className="border p-2 text-center">
+                {food.category?.name || '-'}
+              </td>
               <td className="border p-2 text-center align-middle">
                 {food.imageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -125,19 +129,22 @@ export default function Foods() {
                   />
                 )}
               </td>
-              <td className="border p-2">
-                <button
-                  onClick={() => handleDelete(food._id)}
-                  className="bg-red-600 text-white px-2 py-1 cursor-pointer transition-transform active:scale-90"
-                >
-                  Delete
-                </button>
-                <Link
-                  className="bg-blue-600 text-white px-2 py-1 mr-2 cursor-pointer transition-transform active:scale-90"
-                  href={`/dashboard/foods/edit/${food._id}`}
-                >
-                  Edit
-                </Link>
+              <td className="border p-2 text-center">{food.stock}</td>
+              <td className="border p-2 ">
+                <div className="flex justify-center">
+                  <Button
+                    onClick={() => handleDelete(food._id)}
+                    className="bg-red-600 text-white px-6 py-5 rounded-2xl cursor-pointer transition-transform active:scale-90"
+                  >
+                    Delete
+                  </Button>
+                  <Link
+                    className="bg-blue-600 text-white py-2 px-8 ml-3 inline-flex items-center rounded-2xl cursor-pointer transition-transform active:scale-90"
+                    href={`/dashboard/foods/edit/${food._id}`}
+                  >
+                    Edit
+                  </Link>
+                </div>
               </td>
             </tr>
           ))}

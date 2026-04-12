@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { apiFetch } from '@/lib/api';
+import { apiFetch } from '@/lib/axios';
 
 export default function EditFood() {
   const router = useRouter();
@@ -18,13 +18,19 @@ export default function EditFood() {
   const [categories, setCategories] = useState([]);
   const [image, setImage] = useState(null);
 
+  const accessTokenRef = useRef(accessToken);
+
+  useEffect(() => {
+    accessTokenRef.current = accessToken;
+  }, [accessToken]);
+
   useEffect(() => {
     const fetchData = async () => {
       const [foodRes, categoriesRes] = await Promise.all([
         apiFetch(
           `/foods/${params.id}`,
           { method: 'GET' },
-          accessToken,
+          accessTokenRef.current,
           setAccessToken
         ),
         apiFetch('/categories', { method: 'GET' }, accessToken, setAccessToken),
@@ -46,7 +52,7 @@ export default function EditFood() {
     };
 
     fetchData();
-  }, [params.id, accessToken]);
+  }, [params.id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,7 +72,7 @@ export default function EditFood() {
         method: 'PUT',
         body: formData,
       },
-      accessToken,
+      accessTokenRef.current,
       setAccessToken
     );
 

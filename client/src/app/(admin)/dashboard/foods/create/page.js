@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiFetch } from '@/lib/api';
+import { apiFetch } from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
 
 export default function CreateFood() {
@@ -92,12 +92,14 @@ export default function CreateFood() {
           className="border p-2"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          required
         />
 
         <select
           className="border p-2"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
+          required
         >
           <option value="">Select Category</option>
           {categories.map((cat) => (
@@ -141,7 +143,7 @@ export default function CreateFood() {
           />
         )}
 
-        <button className="bg-black text-white p-2 cursor-pointer">
+        <button className="bg-black text-white p-2 cursor-pointer hover:opacity-85 transition-transform active:scale-90">
           Create Food
         </button>
       </form>

@@ -1,19 +1,34 @@
 'use client';
 
-import { useState, useContext, createContext } from 'react';
-
-const AuthContext = createContext();
+import { useAuthStore } from '@/store/authStore';
+import axios from 'axios';
+import { useState, useContext, createContext, useEffect } from 'react';
 
 export function AuthProvider({ children }) {
-  const [accessToken, setAccessToken] = useState(null);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const [isLoading, setIsLoading] = useState(true);
 
-  return (
-    <AuthContext.Provider value={{ accessToken, setAccessToken }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data } = await axios.post(
+          `${process.env.NEXT_PUBLC_API_URL}/auth/verify-refresh`,
+          {},
+          { withCredentials: true }
+        );
 
-export function useAuth() {
-  return useContext(AuthContext);
+        setAccessToken(data.newAccessToken);
+      } catch {
+        setAccessToken(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkSession();
+  }, []);
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return { children };
 }
